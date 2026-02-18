@@ -45,3 +45,9 @@ logs/
 *.tgz
 *.jar
 *.exe
+
+node_modules/
+.env
+*.tfstate*
+.terraform/
+

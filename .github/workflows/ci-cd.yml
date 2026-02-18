@@ -8,6 +8,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: app   # 👈 SET GLOBAL WORKING DIRECTORY
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,26 +22,20 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: |
-          cd ci-cd-pipeline-node
-          npm ci
+        run: npm install
 
       - name: Run tests
-        run: |
-          cd ci-cd-pipeline-node
-          npm test || echo "No tests found, continuing..."
+        run: npm test || echo "No tests found, continuing..."
 
       - name: Build Docker image
-        run: |
-          cd ci-cd-pipeline-node
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/ci-cd-demo:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ci-cd-demo:latest .
 
       - name: Scan Docker image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/ci-cd-demo:latest
           format: table
-          exit-code: 0  # Change to 1 after fixing vulnerabilities
+          exit-code: 0
           severity: HIGH,CRITICAL
           ignore-unfixed: true
 
@@ -58,20 +56,20 @@ jobs:
           scan-type: config
           scan-ref: ./k8s-deployment
           severity: HIGH,CRITICAL
-          exit-code: 0  # Change to 1 after fixing
+          exit-code: 0
 
       - name: Dependency vulnerability scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
-          scan-ref: ./ci-cd-pipeline-node
+          scan-ref: ./app   # 👈 FIXED
           severity: HIGH,CRITICAL
-          exit-code: 0  # Change to 1 after fixing
+          exit-code: 0
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  # Only deploy on main branch
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code

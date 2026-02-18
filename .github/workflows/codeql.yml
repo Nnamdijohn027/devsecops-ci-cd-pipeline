@@ -10,11 +10,21 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+    defaults:
+      run:
+        working-directory: app   # 👈 IMPORTANT
 
-      - uses: github/codeql-action/init@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
 
-      - uses: github/codeql-action/analyze@v3
+      - name: Install dependencies
+        run: npm install   # 👈 REQUIRED
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
